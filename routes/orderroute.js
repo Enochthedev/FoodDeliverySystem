@@ -6,7 +6,7 @@ import {
   updatestatus,
   userorder,
   verifyorder,
-} from "../controllers/ordercontrol.js";
+} from "../controllers/ordercontroller.js";
 import authmiddleware from "../middleware/auth.js";
 
 const orderrouter = express.Router();
