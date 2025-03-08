@@ -10,8 +10,15 @@ import {
   resetPassword,
   changePassword,
   verifyEmail,
-  logoutUser
+  logoutUser,
+  createCourier,
+  removeCourier,
+  getAllUsers,
+  getAllCouriers,
+  toggleUserStatus,
+  toggleCourierStatus
 } from "../controllers/userController.js";
+import authmiddleware from "../middleware/auth.js";
 
 const userroute = express.Router();
 
@@ -22,30 +29,6 @@ const userroute = express.Router();
  *     summary: Register a new user
  *     description: Allows a new user to sign up.
  *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: "John"
- *               lastName:
- *                 type: string
- *                 example: "Doe"
- *               email:
- *                 type: string
- *                 example: "johndoe@example.com"
- *               password:
- *                 type: string
- *                 example: "securePassword123"
- *     responses:
- *       201:
- *         description: User registered successfully
- *       400:
- *         description: Bad request
  */
 userroute.post("/register", registeruser);
 
@@ -56,24 +39,6 @@ userroute.post("/register", registeruser);
  *     summary: User login
  *     description: Authenticates a user and returns a JWT token.
  *     tags: [User]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *                 example: "johndoe@example.com"
- *               password:
- *                 type: string
- *                 example: "securePassword123"
- *     responses:
- *       200:
- *         description: Login successful
- *       401:
- *         description: Unauthorized
  */
 userroute.post("/login", loginuser);
 
@@ -86,11 +51,8 @@ userroute.post("/login", loginuser);
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: User profile retrieved
  */
-userroute.get("/profile", getUserProfile);
+userroute.get("/profile", authmiddleware, getUserProfile);
 
 /**
  * @swagger
@@ -101,11 +63,8 @@ userroute.get("/profile", getUserProfile);
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: User profile updated
  */
-userroute.put("/profile", updateUserProfile);
+userroute.put("/profile", authmiddleware, updateUserProfile);
 
 /**
  * @swagger
@@ -116,11 +75,8 @@ userroute.put("/profile", updateUserProfile);
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Roles updated successfully
  */
-userroute.put("/update-roles", updateUserRoles);
+userroute.put("/update-roles", authmiddleware, updateUserRoles);
 
 /**
  * @swagger
@@ -131,11 +87,8 @@ userroute.put("/update-roles", updateUserRoles);
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: User deleted successfully
  */
-userroute.delete("/delete", deleteUserAccount);
+userroute.delete("/delete", authmiddleware, deleteUserAccount);
 
 /**
  * @swagger
@@ -144,9 +97,6 @@ userroute.delete("/delete", deleteUserAccount);
  *     summary: Request password reset
  *     description: Sends a password reset link to the user's email.
  *     tags: [User]
- *     responses:
- *       200:
- *         description: Reset link sent
  */
 userroute.post("/request-password-reset", requestPasswordReset);
 
@@ -157,9 +107,6 @@ userroute.post("/request-password-reset", requestPasswordReset);
  *     summary: Reset password
  *     description: Allows users to reset their password using a token.
  *     tags: [User]
- *     responses:
- *       200:
- *         description: Password reset successful
  */
 userroute.post("/reset-password", resetPassword);
 
@@ -172,11 +119,8 @@ userroute.post("/reset-password", resetPassword);
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Password changed successfully
  */
-userroute.put("/change-password", changePassword);
+userroute.put("/change-password", authmiddleware, changePassword);
 
 /**
  * @swagger
@@ -185,9 +129,6 @@ userroute.put("/change-password", changePassword);
  *     summary: Verify email
  *     description: Verifies a user's email address.
  *     tags: [User]
- *     responses:
- *       200:
- *         description: Email verified successfully
  */
 userroute.post("/verify-email", verifyEmail);
 
@@ -200,10 +141,108 @@ userroute.post("/verify-email", verifyEmail);
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
+ */
+userroute.post("/logout", authmiddleware, logoutUser);
+
+/**
+ * @swagger
+ * /api/admin/create-courier:
+ *   post:
+ *     summary: Create a new courier (Admin)
+ *     description: Allows admins to create a new courier account.
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: []
+ */
+userroute.post("/admin/create-courier", authmiddleware, createCourier);
+
+/**
+ * @swagger
+ * /api/admin/remove-courier:
+ *   delete:
+ *     summary: Remove a courier (Admin)
+ *     description: Allows admins to remove a courier from the system.
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: []
+ */
+userroute.delete("/admin/remove-courier", authmiddleware, removeCourier);
+
+/**
+ * @swagger
+ * /api/admin/users:
+ *   get:
+ *     summary: Get all users (Admin)
+ *     description: Fetch all registered users.
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: []
+ */
+userroute.get("/admin/users", authmiddleware, getAllUsers);
+
+/**
+ * @swagger
+ * /api/admin/couriers:
+ *   get:
+ *     summary: Get all couriers (Admin)
+ *     description: Fetch all registered couriers.
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: []
+ */
+userroute.get("/admin/couriers", authmiddleware, getAllCouriers);
+
+/**
+ * @swagger
+ * /api/admin/toggle-user-status:
+ *   put:
+ *     summary: Activate or deactivate any user (Admin)
+ *     description: Allows admins to update a user's status.
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 example: "65f2b1e9e2d2a4f1d89a23a1"
+ *               status:
+ *                 type: string
+ *                 enum: ["active", "inactive"]
  *     responses:
  *       200:
- *         description: Logged out successfully
+ *         description: User status updated successfully
  */
-userroute.post("/logout", logoutUser);
+userroute.put("/api/admin/toggle-user-status", authmiddleware, toggleUserStatus);
+
+/**
+ * @swagger
+ * /api/courier/toggle-status:
+ *   put:
+ *     summary: Activate or deactivate courier status
+ *     description: Allows couriers to update their own status.
+ *     tags: [Courier]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: ["active", "inactive"]
+ *     responses:
+ *       200:
+ *         description: Courier status updated successfully
+ */
+userroute.put("/api/courier/toggle-status", authmiddleware, toggleCourierStatus);
 
 export default userroute;

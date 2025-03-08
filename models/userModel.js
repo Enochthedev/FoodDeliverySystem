@@ -23,6 +23,10 @@ const userschema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  phoneNumber: {
+    type: String,
+    required: true,
+  },
   password: {
     type: String,
     required: true,
@@ -38,8 +42,13 @@ const userschema = new mongoose.Schema({
   },
   roles: {
     type: [String],
-    enum: ['user', 'admin', 'delivery'],
+    enum: ['user', 'admin', 'courier'],
     default: ['user'],
+  },
+  courierStatus: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'inactive',
   },
 }, { timestamps: true });
 

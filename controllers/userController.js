@@ -256,6 +256,125 @@ const deleteUserAccount = async (req, res) => {
   }
 };
 
+// Admin: Create a courier
+const createCourier = async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, phoneNumber } = req.body;
+
+    const exists = await usermodel.findOne({ email });
+    if (exists) {
+      return res.json({ success: false, message: "Courier already exists" });
+    }
+
+    if (!validator.isEmail(email)) {
+      return res.json({ success: false, message: "Invalid email format" });
+    }
+
+    if (password.length < 8) {
+      return res.json({ success: false, message: "Password must be at least 8 characters long" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newCourier = new usermodel({
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      phoneNumber,
+      roles: ["courier"], // Assign courier role
+    });
+
+    await newCourier.save();
+    res.json({ success: true, message: "Courier created successfully", courier: newCourier });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error creating courier" });
+  }
+};
+
+// Admin: Remove a courier
+const removeCourier = async (req, res) => {
+  try {
+    const { courierId } = req.body;
+
+    const courier = await usermodel.findById(courierId);
+    if (!courier || !courier.roles.includes("courier")) {
+      return res.json({ success: false, message: "Courier not found" });
+    }
+
+    await usermodel.findByIdAndDelete(courierId);
+    res.json({ success: true, message: "Courier removed successfully" });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error removing courier" });
+  }
+};
+
+// Admin: Get all users
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await usermodel.find({}).select("-password"); // Exclude passwords
+    res.json({ success: true, users });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error fetching users" });
+  }
+};
+
+// Admin: Get all couriers
+const getAllCouriers = async (req, res) => {
+  try {
+    const couriers = await usermodel.find({ roles: "courier" }).select("-password");
+    res.json({ success: true, couriers });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error fetching couriers" });
+  }
+};
+
+// Admin: Activate or deactivate any user's account
+const toggleUserStatus = async (req, res) => {
+  try {
+    const { userId, status } = req.body; // "active" or "inactive"
+    
+    const user = await usermodel.findById(userId);
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    user.courierStatus = status;
+    await user.save();
+
+    res.json({ success: true, message: `User status updated to ${status}` });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error updating user status" });
+  }
+};
+
+// Couriers: Activate or deactivate their own status
+const toggleCourierStatus = async (req, res) => {
+  try {
+    const { status } = req.body; // "active" or "inactive"
+    const courierId = req.user.id;
+
+    const courier = await usermodel.findById(courierId);
+    if (!courier || !courier.roles.includes("courier")) {
+      return res.json({ success: false, message: "Courier not found" });
+    }
+
+    courier.courierStatus = status;
+    await courier.save();
+
+    res.json({ success: true, message: `Your status updated to ${status}` });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error updating courier status" });
+  }
+};
+
 export {
   loginuser,
   registeruser,
@@ -267,5 +386,11 @@ export {
   resetPassword,
   changePassword,
   verifyEmail,
-  logoutUser
+  logoutUser,
+  createCourier,
+  removeCourier,
+  getAllUsers,
+  getAllCouriers,
+  toggleUserStatus,
+  toggleCourierStatus
 };
