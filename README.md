@@ -40,7 +40,7 @@ This is a backend application for a food delivery service, built using **Node.js
 3. Start the application:
 
    ```bash
-   npm start
+   npm run start
    ```
 
 ### Configuration
